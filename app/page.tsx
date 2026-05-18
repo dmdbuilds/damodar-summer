@@ -103,6 +103,7 @@ export default function Home() {
   const [checks, setChecks] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
+    setNow(new Date())
     setMotIdx(Math.floor(Math.random() * MOTIVATIONAL.length))
     const stored = localStorage.getItem(`checklist-${todayKey()}`)
     if (stored) setChecks(JSON.parse(stored))
