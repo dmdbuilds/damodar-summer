@@ -71,9 +71,20 @@ function getBlock(d: Date): string {
   return 'sleep'
 }
 
-function getSummerWeek(now: Date): number {
-  const start = new Date('2025-06-04')
-  return Math.max(1, Math.floor((now.getTime() - start.getTime()) / (7 * 86400000)) + 1)
+function getSummerStatus(now: Date):
+  | { state: 'pre'; daysUntil: number }
+  | { state: 'active'; week: number }
+  | { state: 'complete' } {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const start = new Date(2025, 5, 4)
+  const end = new Date(2025, 7, 15)
+  if (today > end) return { state: 'complete' }
+  if (today < start) {
+    const daysUntil = Math.ceil((start.getTime() - today.getTime()) / 86400000)
+    return { state: 'pre', daysUntil }
+  }
+  const week = Math.min(10, Math.floor((today.getTime() - start.getTime()) / (7 * 86400000)) + 1)
+  return { state: 'active', week }
 }
 
 function getPhase(w: number): string {
@@ -103,7 +114,8 @@ export default function Home() {
 
   const block = getBlock(now)
   const bd = BLOCKS[block]
-  const week = getSummerWeek(now)
+  const status = getSummerStatus(now)
+  const week = status.state === 'active' ? status.week : 0
 
   function toggle(item: string) {
     const next = { ...checks, [item]: !checks[item] }
@@ -124,10 +136,28 @@ export default function Home() {
         </a>
       </div>
 
+      {status.state !== 'active' && (
+        <div style={{ border: '1px solid #1a1a1a', padding: '0.75rem 1rem' }}>
+          <span style={{ color: status.state === 'complete' ? '#10b981' : '#666', fontSize: '0.875rem' }}>
+            {status.state === 'complete'
+              ? 'summer complete'
+              : `pre-summer — starts in ${status.daysUntil} day${status.daysUntil === 1 ? '' : 's'}`}
+          </span>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
         {[
-          { label: 'week', val: week, accent: true },
-          { label: 'phase', val: getPhase(week), accent: false },
+          {
+            label: 'week',
+            val: status.state === 'active' ? week : status.state === 'complete' ? '10' : '–',
+            accent: status.state === 'active',
+          },
+          {
+            label: 'phase',
+            val: status.state === 'active' ? getPhase(week) : '–',
+            accent: false,
+          },
           { label: 'today', val: WORKOUT[now.getDay()] || 'Rest Day', accent: false },
         ].map(item => (
           <div key={item.label} style={{ border: '1px solid #1a1a1a', padding: '0.75rem' }}>
