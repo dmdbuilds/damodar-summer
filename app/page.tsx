@@ -75,9 +75,10 @@ function getSummerStatus(now: Date):
   | { state: 'pre'; daysUntil: number }
   | { state: 'active'; week: number }
   | { state: 'complete' } {
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const start = new Date(2025, 5, 4)
-  const end = new Date(2025, 7, 15)
+  const year = now.getFullYear()
+  const today = new Date(year, now.getMonth(), now.getDate())
+  const start = new Date(year, 5, 4)
+  const end = new Date(year, 7, 15)
   if (today > end) return { state: 'complete' }
   if (today < start) {
     const daysUntil = Math.ceil((start.getTime() - today.getTime()) / 86400000)
